@@ -71,7 +71,7 @@
         </div>
 
         <!-- Mobile Menu (Hidden by default) -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg">
+        <div id="mobile-menu" class.classList.toggle('hidden'); toggleMobileMenu()" class="hidden md:hidden bg-white shadow-lg">
             <a href="#" onclick="showPage('home'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
             <a href="#" onclick="showPage('groups'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Groups</a>
             <a href="#" onclick="showPage('guides'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Guides</a>
@@ -95,7 +95,7 @@
                 <!-- About -->
                 <div>
                     <h4 class="text-lg font-semibold mb-3 text-emerald-400">Hiking Events</h4>
-                    <p class="text-gray-400 text-sm">Your gateway to the best hiking groups, guides, and destinations in Ethiopia.</p>
+                    <p class="text-gray-400 text-sm">Your gateway to the best hiking groups, guides, and breathtaking destinations in Ethiopia.</p>
                 </div>
                 <!-- Quick Links -->
                 <div>
@@ -120,7 +120,7 @@
                         <a href="https://instagram.com/hikingevents" target="_blank" class="text-gray-400 hover:text-white" aria-label="Instagram"><i data-lucide="instagram" class="w-5 h-5"></i></a>
                         <!-- Facebook -->
                         <a href="https://www.facebook.com/hikingevents" target="_blank" class="text-gray-400 hover:text-white" aria-label="Facebook"><i data-lucide="facebook" class="w-5 h-5"></i></a>
-                        <!-- Telegram (UPDATED LINK) -->
+                        <!-- Telegram -->
                         <a href="https://t.me/hikingevent" target="_blank" class="text-gray-400 hover:text-white" aria-label="Telegram"><i data-lucide="send" class="w-5 h-5"></i></a>
                     </div>
                     <form onsubmit="event.preventDefault(); newsletterSignup()">
@@ -146,13 +146,13 @@
         // Global map variable to manage the map instance
         let destinationsMapInstance = null;
 
-        // --- REAL GROUP DATA (UPDATED with Enqu Travels) ---
+        // --- REAL GROUP DATA ---
         const groupsData = [
             { 
                 id: 1, 
                 name: "Aesop Hiking and Camping", 
                 organizer: "Alexander Yohannes", 
-                contactEmail: "alexanderyohannes135@gmail.com", 
+                contactEmail: "Contact via Telegram", 
                 telegramLink: "https://t.me/aesop_999",
                 locationTag: "Addis Area", 
                 description: "Organizes diverse hiking and camping trips. Contact organizer for details.", 
@@ -161,56 +161,218 @@
                 id: 2, 
                 name: "Khul Wholeness Center", 
                 organizer: "Besufkad Getachew", 
-                contactEmail: "mentesnotgetu7@gmail.com", 
+                contactEmail: "Contact via Telegram", 
                 telegramLink: "https://t.me/KhulWorld",
                 locationTag: "Wellness Focus", 
                 description: "Focuses on holistic wellness treks and nature connection experiences.",
             },
             { 
                 id: 3, 
-                name: "Hasset Hiking", 
-                organizer: "Bereket getachew", 
-                contactEmail: "hasetbereket222@gmail.com", 
-                telegramLink: "https://t.me/haset_hiking",
-                locationTag: "Weekends & Short Treks", 
-                description: "A popular group for short, accessible hiking events, often on weekends.",
+                name: "Negestat Event Organizer", 
+                organizer: "Bereket Getachew", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/NEGESTATEVENTORGANIZER",
+                locationTag: "Events & Treks", 
+                description: "A professional organizer focusing on event-based and custom treks.",
             },
             { 
                 id: 4, 
-                name: "Gamee.hiking", 
-                organizer: "Aklsieya Seyoum Yirga", 
-                contactEmail: "gameehiking@gmail.com", 
-                telegramLink: "https://t.me/gameehiking",
-                locationTag: "Diverse Regions", 
-                description: "A dynamic group known for exploring various unique Ethiopian regions.",
+                name: "Enqu Travel", 
+                organizer: "Yonas Belay", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/enqu_hiking",
+                locationTag: "Award Winner", 
+                description: "A highly-rated travel group offering premium hiking and travel packages.",
             },
             { 
                 id: 5, 
-                name: "SAVANNA HIKING AND EVENT'S", 
-                organizer: "Eyob neguse", 
-                contactEmail: "neguseeyob90@gmail.com", 
+                name: "Cozy Trip", 
+                organizer: "Eyerusalem Tsegaye", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/+FrZ_3l1OhVYwMDA0",
+                locationTag: "Cozy Trips", 
+                description: "Known for comfortable and well-organized, relaxed travel excursions.",
+            },
+            { 
+                id: 6, 
+                name: "Store251", 
+                organizer: "Maedot Assefa", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/Store251World",
+                locationTag: "Store & Travel", 
+                description: "Combines trekking with outdoor gear and apparel services.",
+            },
+            { 
+                id: 7, 
+                name: "Hikologist", 
+                organizer: "Rahel Mulugeta Bekelet", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/Hikologist",
+                locationTag: "Diverse Regions", 
+                description: "Explores wide and diverse regions of Ethiopia focusing on in-depth trekking.",
+            },
+            { 
+                id: 8, 
+                name: "Ha-Geez Hiking", 
+                organizer: "Gezu Belachew Nedhi", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/HaGeezHikingClub",
+                locationTag: "Culture & History", 
+                description: "Organizes treks with a focus on cultural and historical sites.",
+            },
+            { 
+                id: 9, 
+                name: "Euphoria Hiking", 
+                organizer: "Kalkidan Abayneh", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/euphoriahiking44",
+                locationTag: "Euphoria Treks", 
+                description: "A dynamic group offering high-energy and exciting outdoor adventures.",
+            },
+            { 
+                id: 10, 
+                name: "Melona Hiking", 
+                organizer: "Yordanos Selifu", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/melonatravel",
+                locationTag: "Melona Travel", 
+                description: "Provides customized hiking and travel experiences across Ethiopia.",
+            },
+            { 
+                id: 11, 
+                name: "Savanna Hiking / SAVANNA HIKING AND EVENT'S", 
+                organizer: "Hawariyaw Thomas / Eyob Neguse Mekuria", 
+                contactEmail: "Contact via Telegram", 
                 telegramLink: "https://t.me/Savannahikes",
                 locationTag: "Events & Excursions", 
                 description: "Organizes hikes alongside various social and recreational events.",
             },
             { 
-                id: 6, 
+                id: 12, 
+                name: "Yeha Hiking", 
+                organizer: "Iyassu Mengistu", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/+UhBbZ5o3q382NzM0",
+                locationTag: "Yeha Treks", 
+                description: "Dedicated to exploring the ancient and scenic locations around Ethiopia.",
+            },
+            { 
+                id: 13, 
+                name: "Maleda Tour and Travel", 
+                organizer: "Rabira Chimdo", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/maledahikings",
+                locationTag: "Tour Operator", 
+                description: "A professional tour and travel company offering specialized hiking packages.",
+            },
+            { 
+                id: 14, 
+                name: "Isaac Hiking and Camping", 
+                organizer: "Abenezer Samuel / Abenazer Samuel Madebo", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/Visitthemotherland",
+                locationTag: "Motherland Tours", 
+                description: "Focuses on providing deep and memorable experiences of the Ethiopian motherland.",
+            },
+            { 
+                id: 15, 
+                name: "Royal Hiking", 
+                organizer: "Anwar Ali", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/royalhikin",
+                locationTag: "Royal Treks", 
+                description: "Provides high-quality, memorable hiking adventures.",
+            },
+            { 
+                id: 16, 
+                name: "Oko Hiking", 
+                organizer: "Siyane Yonas", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/Okohiking",
+                locationTag: "Oko Adventures", 
+                description: "A focused hiking group offering regular local and regional trips.",
+            },
+            { 
+                id: 17, 
+                name: "Hasset Hiking", 
+                organizer: "Nasredin Mohamed", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/hassethiking",
+                locationTag: "Short Treks", 
+                description: "Known for quick, accessible hiking events, often on weekends.",
+            },
+            { 
+                id: 18, 
+                name: "Ymdralem Tour and Travel", 
+                organizer: "Nuhamin Mekonen", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/loonahhiking",
+                locationTag: "Ymdralem Tours", 
+                description: "Organizes comprehensive tours including hiking and cultural visits.",
+            },
+            { 
+                id: 19, 
+                name: "Joud Tour and Hiking", 
+                organizer: "Fuad Musema", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/joudtour",
+                locationTag: "Joud Adventures", 
+                description: "Offers a combination of tourist attractions and challenging hikes.",
+            },
+            { 
+                id: 20, 
+                name: "Shanko Travel Ethiopia", 
+                organizer: "Amanuel Assefa Eshete", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/+9tDb28P9WV4yOGQ0",
+                locationTag: "Shanko Travel", 
+                description: "A travel group specializing in exploring the remote parts of Ethiopia.",
+            },
+            { 
+                id: 21, 
+                name: "Gamee.hiking", 
+                organizer: "Aklsieya Seyoum Yirga", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/gameehiking",
+                locationTag: "Gamee Treks", 
+                description: "A dynamic group known for exploring various unique Ethiopian regions.",
+            },
+            { 
+                id: 22, 
                 name: "Stellar Tour and Travel", 
-                organizer: "Yonas kifle", 
-                contactEmail: "info@stellartourandtravel.com", 
+                organizer: "Yonas Kifle", 
+                contactEmail: "Contact via Telegram", 
                 telegramLink: "https://t.me/stellartourandtravel",
                 locationTag: "Tour Operator", 
                 description: "A professional tour and travel company offering trekking and destination packages.",
             },
-            // NEW GROUP ADDED from the event details
             { 
-                id: 7, 
-                name: "Enqu Travels", 
-                organizer: "Unspecified", // Organizer name not provided in the ad
-                contactEmail: "Via Telegram/Phone", 
-                telegramLink: "https://t.me/enqu_hiking",
-                locationTag: "Award Winner", 
-                description: "Winner of the Enqu 2024 Best Hiking Group Award. Focuses on premium excursions.",
+                id: 23, 
+                name: "Ergibaye Habesha Travel & Hiking Event", 
+                organizer: "Ergibe Wondimu Gebrekidan", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/cometravelergibayetour",
+                locationTag: "Habesha Travel", 
+                description: "Specializes in traditional Ethiopian travel and hiking event organization.",
+            },
+            { 
+                id: 24, 
+                name: "ዙረት (Zuret)", 
+                organizer: "Kibrewosen Asefa", 
+                contactEmail: "Contact via Telegram", 
+                telegramLink: "https://t.me/Zuretcamping",
+                locationTag: "Zuret Camping", 
+                description: "Focuses on providing great camping and trekking experiences.",
+            },
+            // --- NEW GROUP ADDED ---
+            { 
+                id: 25, 
+                name: "Iconic Hiking", 
+                organizer: "Dawit Dave", // Inferred from contact info
+                contactEmail: "Contact via Telegram/Phone", 
+                telegramLink: "https://t.me/iconichiking",
+                locationTag: "Addis Area", 
+                description: "A well-known group focusing on scenic day trips and adventures near the capital.",
             },
         ];
 
@@ -230,28 +392,62 @@
             { id: 4, name: "Wenchi Crater Lake", location: "Oromia Region", difficulty: "Easy", bestTime: "All Year", description: "A beautiful caldera lake offering boat rides and gentle hiking trails.", lat: 8.7909, lng: 37.8931 },
         ];
         
-        // --- EVENT DATA (UPDATED with Wenchi Hike) ---
+        // --- EVENT DATA (UPDATED: Active event moved to the top) ---
         const eventsData = [
-            // NEW WENCHI CRATER LAKE EVENT
+            // ACTIVE event (Wenchi by Enqu) - MOVED TO TOP
             {
-                id: 10, // New unique ID
+                id: 10, 
                 date: "Sunday, October 12, 2025",
                 name: "Wenchi Crater Lake Hike (Round 5)",
-                group: "Enqu Travels",
-                difficulty: "Easy", // Assuming Easy/Moderate since it's a crater lake
+                group: "Enqu Travel", 
+                difficulty: "Easy", 
                 status: "Open - Book Now!",
                 sourceLink: "https://t.me/enqu_hiking",
                 location: "Wenchi Crater Lake, Oromia Region",
-                isFeatured: true
+                isFeatured: true // Keep this featured since it's the only active one
             },
-            // Previous events shifted down
+            // Completed events
+            {
+                id: 13,
+                date: "Oct 4 - 5, 2025 (2 Days)",
+                name: "Wenchi Trip – A Weekend Packed with Adventure",
+                group: "Local Adventure Organizers", 
+                difficulty: "Moderate",
+                status: "Completed (Just Concluded)",
+                sourceLink: "tel:+251965706767", 
+                location: "Wenchi Crater Lake, Oromia Region",
+                isFeatured: false
+            },
+            {
+                id: 12,
+                date: "Sept 26 - 29, 2025 (4 Days)",
+                name: "Meskel Gurage Edition: 4-Day Trek to Gurage Sebat Bet",
+                group: "ዙረት (Zuret)",
+                difficulty: "Challenging",
+                status: "Completed (Past Event)",
+                sourceLink: "https://t.me/Zuretcamping",
+                location: "Gurage Sebat Bet, SNNPR", 
+                isFeatured: false
+            },
+            {
+                id: 11,
+                date: "Sunday, September 21, 2025",
+                name: "Hiking to 'Suba National Forest park and Meti waterfall'",
+                group: "Iconic Hiking",
+                difficulty: "Moderate", 
+                status: "Completed (Past Event)",
+                sourceLink: "http://www.instagram.com/iconichiking",
+                location: "Suba Menagsha Forest, Oromia Region (near Addis)",
+                isFeatured: false
+            },
+            // Future events set to INACTIVE
             {
                 id: 1,
                 date: "Nov 29 - Dec 3, 2025",
                 name: "Epic Trek to Mount Abune Yosef (Lalibela)",
                 group: "Stellar Tour and Travel",
                 difficulty: "Challenging",
-                status: "Open",
+                status: "Inactive (Postponed)",
                 sourceLink: "https://t.me/hikingevent/2259",
                 location: "Lalibela Area, Amhara Region",
                 isFeatured: false
@@ -262,18 +458,18 @@
                 name: "Simien Mountains Trek (7 Days)",
                 group: "Stellar Tour and Travel",
                 difficulty: "Difficult",
-                status: "Filling up fast!",
+                status: "Inactive (Postponed)",
                 sourceLink: "#",
                 location: "Simien Mountains National Park",
                 isFeatured: false
             },
             {
                 id: 3,
-                date: "Jan 5, 2026", // Adjusted year to keep it plausible relative to Oct 2025 event
+                date: "Jan 5, 2026", 
                 name: "Entoto Day Hike",
                 group: "Aesop Hiking and Camping",
                 difficulty: "Easy",
-                status: "Open for registration",
+                status: "Inactive (Postponed)",
                 sourceLink: "https://t.me/aesop_999",
                 location: "Entoto Mountain, Addis Ababa",
                 isFeatured: false
@@ -284,7 +480,7 @@
                 name: "Khul Wellness Trek",
                 group: "Khul Wholeness Center",
                 difficulty: "Moderate",
-                status: "Limited Spots",
+                status: "Inactive (Postponed)",
                 sourceLink: "https://t.me/KhulWorld",
                 location: "Bishoftu (Debre Zeit)",
                 isFeatured: false
@@ -396,7 +592,7 @@
                             Trek Ethiopia: Explore Majestic Landscapes
                         </h1>
                         <p class="text-xl text-gray-100 mb-8">
-                            Find verified groups, expert guides, and breathtaking destinations across the Horn of Africa.
+                            Your next great adventure begins here.
                         </p>
                         <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
                             <button onclick="showPage('groups')" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition duration-300 shadow-lg transform hover:scale-[1.02]">
@@ -490,7 +686,7 @@
 
             return `
                 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Verified Hiking Groups</h2>
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Verified Hiking Groups (${data.length} Total)</h2>
                     <p class="text-lg text-gray-600 mb-8">Connect directly with certified Ethiopian hiking organizers. All groups listed here are active and verified.</p>
                     
                     <!-- Search Control -->
@@ -590,14 +786,39 @@
 
         const renderEventsPage = (data) => {
              const eventListHTML = data.map(event => {
-                 // Check if the event uses the old link and needs correction for visual consistency
-                 const sourceLinkText = event.sourceLink.includes('t.me/enqu_hiking') ? 'View Event Details (Telegram)' : 'Contact Organizer';
+                 // Check if the event is completed/past to change styling
+                 const isPast = event.status.includes('Completed');
+                 const isInactive = event.status.includes('Inactive');
+                 const isFeatured = event.isFeatured && !isPast && !isInactive; // Only feature the single active event
+
+                 // Determine primary color for the card and CTA
+                 const cardColor = isPast || isInactive ? 'border-l-4 border-gray-400 opacity-70' : (isFeatured ? 'border-l-4 border-red-500' : 'border-l-4 border-emerald-500');
+                 const dateColor = isPast || isInactive ? 'text-gray-500' : (isFeatured ? 'text-red-600' : 'text-emerald-700');
+                 const ctaColor = isPast || isInactive ? 'bg-gray-500 hover:bg-gray-600' : (isFeatured ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700');
+                 
+                 // Determine button text and action
+                 let sourceLinkText = 'View Details';
+                 if (isPast) {
+                    sourceLinkText = 'View Past Details';
+                 } else if (isInactive) {
+                    sourceLinkText = 'Check for Updates';
+                 } else if (event.sourceLink.startsWith('https://t.me')) {
+                    sourceLinkText = 'View Event Details (Telegram)';
+                 } else if (event.sourceLink.startsWith('tel:')) {
+                    sourceLinkText = 'Call Organizer';
+                 } else if (event.sourceLink.startsWith('http')) {
+                    sourceLinkText = 'View Event Details (Web)';
+                 }
                  
                  return `
-                    <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl ${event.isFeatured ? 'border-l-4 border-red-500' : 'border-l-4 border-emerald-500'}">
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl ${cardColor}">
                         <div class="flex items-start justify-between mb-3">
-                            <p class="text-lg font-extrabold ${event.isFeatured ? 'text-red-600' : 'text-emerald-700'}">${event.date}</p>
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full ${event.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : event.difficulty === 'Moderate' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}">${event.difficulty}</span>
+                            <p class="text-lg font-extrabold ${dateColor}">${event.date}</p>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                                ${isPast ? 'bg-gray-200 text-gray-600' : isInactive ? 'bg-yellow-100 text-yellow-700' : event.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : event.difficulty === 'Moderate' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}"
+                            >
+                                ${event.difficulty}
+                            </span>
                         </div>
                         
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">${event.name}</h3>
@@ -605,10 +826,10 @@
                         <div class="space-y-1 text-gray-600 text-sm mb-4">
                             <p class="flex items-center"><i data-lucide="users" class="w-4 h-4 mr-2"></i> Organized by: <span class="font-semibold ml-1">${event.group}</span></p>
                             <p class="flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-2"></i> Location: <span class="font-semibold ml-1">${event.location}</span></p>
-                            <p class="flex items-center"><i data-lucide="info" class="w-4 h-4 mr-2"></i> Status: <span class="font-semibold ml-1">${event.status}</span></p>
+                            <p class="flex items-center"><i data-lucide="info" class="w-4 h-4 mr-2"></i> Status: <span class="font-semibold ml-1 ${isPast ? 'text-gray-500' : isInactive ? 'text-yellow-600' : 'text-red-500'}">${event.status}</span></p>
                         </div>
 
-                        <a href="${event.sourceLink}" target="_blank" class="flex items-center justify-center mt-4 px-4 py-2 ${event.isFeatured ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-semibold rounded-lg transition shadow-md">
+                        <a href="${event.sourceLink}" target="_blank" class="flex items-center justify-center mt-4 px-4 py-2 ${ctaColor} text-white font-semibold rounded-lg transition shadow-md">
                             <i data-lucide="external-link" class="w-5 h-5 mr-2"></i> 
                             ${sourceLinkText}
                         </a>
@@ -618,8 +839,8 @@
 
              return `
                 <div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Upcoming Hiking Events</h2>
-                    <p class="text-lg text-gray-600 mb-8">This is the calendar for verified treks and tours. The Wenchi hike is featured at the top!</p>
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Upcoming & Past Hiking Events</h2>
+                    <p class="text-lg text-gray-600 mb-8">Discover the latest hiking events, from multi-day treks to single-day excursions. Check event status for availability.</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         ${eventListHTML}
@@ -693,7 +914,7 @@
                                 <a href="https://instagram.com/hikingevents" target="_blank" class="text-gray-500 hover:text-pink-600 transition" aria-label="Instagram"><i data-lucide="instagram" class="w-7 h-7"></i></a>
                                 <!-- Facebook -->
                                 <a href="https://www.facebook.com/hikingevents" target="_blank" class="text-gray-500 hover:text-blue-600 transition" aria-label="Facebook"><i data-lucide="facebook" class="w-7 h-7"></i></a>
-                                <!-- Telegram (UPDATED LINK) -->
+                                <!-- Telegram -->
                                 <a href="https://t.me/hikingevent" target="_blank" class="text-gray-500 hover:text-cyan-600 transition" aria-label="Telegram"><i data-lucide="send" class="w-7 h-7"></i></a>
                             </div>
                         </div>
