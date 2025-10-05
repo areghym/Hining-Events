@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiking Events Ethiopia</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Load Leaflet CSS for Mapping -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --color-primary: #10B981; /* Emerald Green */
+            --color-secondary: #EF4444; /* Red for alerts/CTAs */
+            --color-text-dark: #1F2937; /* Dark Grey */
+            --color-background: #F9FAFB; /* Light Grey Background */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-dark);
+        }
+        .hero-bg {
+            background-image: url('https://placehold.co/1200x600/10b981/ffffff?text=Simien+Mountains');
+            background-size: cover;
+            background-position: center;
+        }
+        .page-content {
+            min-height: calc(100vh - 80px); /* Adjust for header/footer */
+        }
+        /* Style for the map container */
+        #destinations-map {
+            height: 400px; /* Fixed height for the map section */
+            width: 100%;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            z-index: 10; /* Ensures map elements are above other content if necessary */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <a href="#" onclick="showPage('home')" class="text-2xl font-bold text-emerald-600 tracking-wider">
+                    Hiking<span class="text-gray-700">Events</span>
+                </a>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex space-x-6 text-gray-600 font-medium">
+                    <a href="#" onclick="showPage('home')" class="hover:text-emerald-600 transition duration-150">Home</a>
+                    <a href="#" onclick="showPage('groups')" class="hover:text-emerald-600 transition duration-150">Groups</a>
+                    <a href="#" onclick="showPage('guides')" class="hover:text-emerald-600 transition duration-150">Guides</a>
+                    <a href="#" onclick="showPage('destinations')" class="hover:text-emerald-600 transition duration-150">Destinations</a>
+                    <a href="#" onclick="showPage('events')" class="hover:text-emerald-600 transition duration-150">Events</a>
+                    <a href="#" onclick="showPage('contact')" class="hover:text-emerald-600 transition duration-150">Contact</a>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-emerald-600 focus:outline-none" aria-label="Menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg">
+            <a href="#" onclick="showPage('home'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
+            <a href="#" onclick="showPage('groups'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Groups</a>
+            <a href="#" onclick="showPage('guides'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Guides</a>
+            <a href="#" onclick="showPage('destinations'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Destinations</a>
+            <a href="#" onclick="showPage('events'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Events</a>
+            <a href="#" onclick="showPage('contact'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Contact</a>
+        </div>
+    </header>
+    
+    <!-- Main Content Area -->
+    <main class="page-content">
+        <div id="page-container">
+            <!-- Content will be rendered here by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- About -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Hiking Events</h4>
+                    <p class="text-gray-400 text-sm">Your gateway to the best hiking groups, guides, and destinations in Ethiopia.</p>
+                </div>
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Quick Links</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" onclick="showPage('groups')" class="text-gray-400 hover:text-emerald-400">Hiking Groups</a></li>
+                        <li><a href="#" onclick="showPage('guides')" class="text-gray-400 hover:text-emerald-400">Tour Guides</a></li>
+                        <li><a href="#" onclick="showPage('destinations')" class="text-gray-400 hover:text-emerald-400">Parks & Destinations</a></li>
+                    </ul>
+                </div>
+                <!-- Contact Info -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Get in Touch</h4>
+                    <p class="text-gray-400 text-sm">Email: hikingevents@gmail.com</p>
+                    <p class="text-gray-400 text-sm">Phone: +251910853427</p>
+                </div>
+                <!-- Social Media & Newsletter -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Stay Connected</h4>
+                    <div class="flex space-x-3 mb-4">
+                        <!-- Instagram -->
+                        <a href="https://instagram.com/hikingevents" target="_blank" class="text-gray-400 hover:text-white" aria-label="Instagram"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                        <!-- Facebook -->
+                        <a href="https://www.facebook.com/hikingevents" target="_blank" class="text-gray-400 hover:text-white" aria-label="Facebook"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                        <!-- Telegram (UPDATED LINK) -->
+                        <a href="https://t.me/hikingevent" target="_blank" class="text-gray-400 hover:text-white" aria-label="Telegram"><i data-lucide="send" class="w-5 h-5"></i></a>
+                    </div>
+                    <form onsubmit="event.preventDefault(); newsletterSignup()">
+                        <input type="email" placeholder="Join Newsletter" class="p-2 w-full text-sm rounded-l-md text-gray-900 focus:outline-none">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 w-full rounded-b-md transition">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center text-sm text-gray-500 mt-8 pt-4 border-t border-gray-700">
+                &copy; 2024 Hiking Events. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Load Leaflet JavaScript AFTER the map container is rendered -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <!-- JavaScript for Routing, Data, and Interactivity -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+        
+        // Global map variable to manage the map instance
+        let destinationsMapInstance = null;
+
+        // --- REAL GROUP DATA (UPDATED with Enqu Travels) ---
+        const groupsData = [
+            { 
+                id: 1, 
+                name: "Aesop Hiking and Camping", 
+                organizer: "Alexander Yohannes", 
+                contactEmail: "alexanderyohannes135@gmail.com", 
+                telegramLink: "https://t.me/aesop_999",
+                locationTag: "Addis Area", 
+                description: "Organizes diverse hiking and camping trips. Contact organizer for details.", 
+            },
+            { 
+                id: 2, 
+                name: "Khul Wholeness Center", 
+                organizer: "Besufkad Getachew", 
+                contactEmail: "mentesnotgetu7@gmail.com", 
+                telegramLink: "https://t.me/KhulWorld",
+                locationTag: "Wellness Focus", 
+                description: "Focuses on holistic wellness treks and nature connection experiences.",
+            },
+            { 
+                id: 3, 
+                name: "Hasset Hiking", 
+                organizer: "Bereket getachew", 
+                contactEmail: "hasetbereket222@gmail.com", 
+                telegramLink: "https://t.me/haset_hiking",
+                locationTag: "Weekends & Short Treks", 
+                description: "A popular group for short, accessible hiking events, often on weekends.",
+            },
+            { 
+                id: 4, 
+                name: "Gamee.hiking", 
+                organizer: "Aklsieya Seyoum Yirga", 
+                contactEmail: "gameehiking@gmail.com", 
+                telegramLink: "https://t.me/gameehiking",
+                locationTag: "Diverse Regions", 
+                description: "A dynamic group known for exploring various unique Ethiopian regions.",
+            },
+            { 
+                id: 5, 
+                name: "SAVANNA HIKING AND EVENT'S", 
+                organizer: "Eyob neguse", 
+                contactEmail: "neguseeyob90@gmail.com", 
+                telegramLink: "https://t.me/Savannahikes",
+                locationTag: "Events & Excursions", 
+                description: "Organizes hikes alongside various social and recreational events.",
+            },
+            { 
+                id: 6, 
+                name: "Stellar Tour and Travel", 
+                organizer: "Yonas kifle", 
+                contactEmail: "info@stellartourandtravel.com", 
+                telegramLink: "https://t.me/stellartourandtravel",
+                locationTag: "Tour Operator", 
+                description: "A professional tour and travel company offering trekking and destination packages.",
+            },
+            // NEW GROUP ADDED from the event details
+            { 
+                id: 7, 
+                name: "Enqu Travels", 
+                organizer: "Unspecified", // Organizer name not provided in the ad
+                contactEmail: "Via Telegram/Phone", 
+                telegramLink: "https://t.me/enqu_hiking",
+                locationTag: "Award Winner", 
+                description: "Winner of the Enqu 2024 Best Hiking Group Award. Focuses on premium excursions.",
+            },
+        ];
+
+        // --- MOCK DATA (KEPT FOR OTHER SECTIONS) ---
+        const guidesData = [
+            { id: 1, name: "Yohannes A.", photo: "https://placehold.co/100x100/10b981/ffffff?text=Y.A", contact: "yohannes@guide.et", rating: 5, bio: "Expert in mountain biodiversity and flora of the Bale Mountains. 15 years experience." },
+            { id: 2, name: "Selamawit G.", photo: "https://placehold.co/100x100/3B82F6/ffffff?text=S.G", contact: "selamawit@guide.et", rating: 4.5, bio: "Certified cultural trek guide. Fluent in Amharic, English, and German." },
+            { id: 3, name: "Dawit M.", photo: "https://placehold.co/100x100/F59E0B/ffffff?text=D.M", contact: "dawit@guide.et", rating: 4, bio: "Specialist in Erta Ale volcano tours and Danakil Depression. Safety-certified." },
+            { id: 4, name: "Aster H.", photo: "https://placehold.co/100x100/6B7280/ffffff?text=A.H", contact: "aster@guide.et", rating: 5, bio: "Focuses on bird watching and easy family trails around Lake Tana." },
+        ];
+
+        // IMPORTANT: Added Lat/Lng coordinates for mapping
+        const destinationsData = [
+            { id: 1, name: "Simien Mountains National Park", location: "Gondar", difficulty: "Difficult", bestTime: "September - November", description: "A UNESCO World Heritage site known for its dramatic landscapes, deep canyons, and endemic wildlife like the Gelada Baboon.", lat: 13.1706, lng: 38.2917 },
+            { id: 2, name: "Bale Mountains National Park", location: "Oromia Region", difficulty: "Moderate", bestTime: "October - March", description: "Home to the Ethiopian Wolf and stunning Afro-alpine forests. Offers diverse environments from tropical to high mountain zones.", lat: 6.9535, lng: 39.7561 },
+            { id: 3, name: "Erta Ale Volcano", location: "Afar Region", difficulty: "Expert", bestTime: "November - February", description: "One of the few permanent lava lakes in the world. An extremely challenging trek often done at night.", lat: 13.606, lng: 40.669 },
+            { id: 4, name: "Wenchi Crater Lake", location: "Oromia Region", difficulty: "Easy", bestTime: "All Year", description: "A beautiful caldera lake offering boat rides and gentle hiking trails.", lat: 8.7909, lng: 37.8931 },
+        ];
+        
+        // --- EVENT DATA (UPDATED with Wenchi Hike) ---
+        const eventsData = [
+            // NEW WENCHI CRATER LAKE EVENT
+            {
+                id: 10, // New unique ID
+                date: "Sunday, October 12, 2025",
+                name: "Wenchi Crater Lake Hike (Round 5)",
+                group: "Enqu Travels",
+                difficulty: "Easy", // Assuming Easy/Moderate since it's a crater lake
+                status: "Open - Book Now!",
+                sourceLink: "https://t.me/enqu_hiking",
+                location: "Wenchi Crater Lake, Oromia Region",
+                isFeatured: true
+            },
+            // Previous events shifted down
+            {
+                id: 1,
+                date: "Nov 29 - Dec 3, 2025",
+                name: "Epic Trek to Mount Abune Yosef (Lalibela)",
+                group: "Stellar Tour and Travel",
+                difficulty: "Challenging",
+                status: "Open",
+                sourceLink: "https://t.me/hikingevent/2259",
+                location: "Lalibela Area, Amhara Region",
+                isFeatured: false
+            },
+            {
+                id: 2,
+                date: "Dec 15, 2024",
+                name: "Simien Mountains Trek (7 Days)",
+                group: "Stellar Tour and Travel",
+                difficulty: "Difficult",
+                status: "Filling up fast!",
+                sourceLink: "#",
+                location: "Simien Mountains National Park",
+                isFeatured: false
+            },
+            {
+                id: 3,
+                date: "Jan 5, 2026", // Adjusted year to keep it plausible relative to Oct 2025 event
+                name: "Entoto Day Hike",
+                group: "Aesop Hiking and Camping",
+                difficulty: "Easy",
+                status: "Open for registration",
+                sourceLink: "https://t.me/aesop_999",
+                location: "Entoto Mountain, Addis Ababa",
+                isFeatured: false
+            },
+            {
+                id: 4,
+                date: "Feb 20, 2026",
+                name: "Khul Wellness Trek",
+                group: "Khul Wholeness Center",
+                difficulty: "Moderate",
+                status: "Limited Spots",
+                sourceLink: "https://t.me/KhulWorld",
+                location: "Bishoftu (Debre Zeit)",
+                isFeatured: false
+            },
+        ];
+
+        // --- UTILITY FUNCTIONS ---
+
+        /** Renders star icons based on a rating value. */
+        const renderStars = (rating) => {
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 !== 0;
+            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+            let html = '';
+
+            // Full Stars
+            for (let i = 0; i < fullStars; i++) {
+                html += '<i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-yellow-400"></i>';
+            }
+            // Half Star
+            if (halfStar) {
+                html += '<i data-lucide="star-half" class="w-4 h-4 text-yellow-400 fill-yellow-400"></i>';
+            }
+            // Empty Stars
+            for (let i = 0; i < emptyStars; i++) {
+                html += '<i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>';
+            }
+            return html;
+        };
+
+        /** Handles newsletter signup (mock) */
+        const newsletterSignup = () => {
+            // In a real app, this would send data to a server.
+            console.log('Newsletter signed up!');
+            document.getElementById('page-container').innerHTML = `
+                <div class="max-w-xl mx-auto py-12 px-4 text-center">
+                    <h2 class="text-3xl font-bold text-emerald-600 mb-4">Thanks for Subscribing!</h2>
+                    <p class="text-lg text-gray-600">You'll receive updates on the latest hiking events and news.</p>
+                    <button onclick="showPage('home')" class="mt-6 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition">Go Home</button>
+                </div>
+            `;
+        }
+        
+        /** Handles contact form submission (No longer uses alert()) */
+        const handleContactSubmit = () => {
+            // Get the form container
+            const formContainer = document.getElementById('contact-form-container');
+            
+            // Clear the form content and display the success message
+            formContainer.innerHTML = `
+                <div class="p-6 bg-emerald-100 border-l-4 border-emerald-500 text-emerald-700 rounded-xl shadow-inner">
+                    <h4 class="text-2xl font-bold mb-2 flex items-center">
+                        <i data-lucide="check-circle" class="w-6 h-6 mr-2"></i> Message Sent!
+                    </h4>
+                    <p>Thank you for reaching out. We have successfully received your inquiry and will respond shortly.</p>
+                </div>
+                <button onclick="showPage('contact')" class="mt-6 px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition shadow-md">
+                    Send Another Message
+                </button>
+            `;
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+        }
+
+        // --- MAP INITIALIZATION FUNCTION ---
+        const loadDestinationMap = () => {
+            // Clean up previous map instance if it exists
+            if (destinationsMapInstance) {
+                destinationsMapInstance.remove();
+                destinationsMapInstance = null;
+            }
+
+            const mapElement = document.getElementById('destinations-map');
+            if (!mapElement) return;
+
+            // Define map center (Ethiopia)
+            const ethiopiaCenter = [8.9806, 38.7578]; // Addis Ababa
+
+            // Initialize map
+            destinationsMapInstance = L.map('destinations-map').setView(ethiopiaCenter, 6);
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+            }).addTo(destinationsMapInstance);
+
+            // Add markers for all destinations
+            destinationsData.forEach(dest => {
+                L.marker([dest.lat, dest.lng]).addTo(destinationsMapInstance)
+                    .bindPopup(`
+                        <strong class="text-emerald-600">${dest.name}</strong><br>
+                        Difficulty: ${dest.difficulty}<br>
+                        Location: ${dest.location}
+                    `);
+            });
+            
+            // Re-render Lucide icons if any were used in popups (though not currently)
+            lucide.createIcons(); 
+        };
+
+        // --- PAGE RENDERING FUNCTIONS ---
+
+        const renderHomePage = () => {
+            return `
+                <section class="hero-bg h-[70vh] flex items-center justify-center text-center p-4">
+                    <div class="bg-black/50 p-8 rounded-xl max-w-3xl">
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight shadow-text">
+                            Trek Ethiopia: Explore Majestic Landscapes
+                        </h1>
+                        <p class="text-xl text-gray-100 mb-8">
+                            Find verified groups, expert guides, and breathtaking destinations across the Horn of Africa.
+                        </p>
+                        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                            <button onclick="showPage('groups')" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition duration-300 shadow-lg transform hover:scale-[1.02]">
+                                Join a Group
+                            </button>
+                            <button onclick="showPage('guides')" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition duration-300 shadow-lg transform hover:scale-[1.02]">
+                                Contact a Guide
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="py-12 px-4 max-w-7xl mx-auto">
+                    <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Quick Links</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div onclick="showPage('groups')" class="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 cursor-pointer text-center border-t-4 border-emerald-500">
+                            <i data-lucide="users" class="w-8 h-8 text-emerald-600 mx-auto mb-3"></i>
+                            <h3 class="font-semibold text-lg">Hiking Groups</h3>
+                            <p class="text-sm text-gray-500">Find your tribe</p>
+                        </div>
+                        <div onclick="showPage('guides')" class="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 cursor-pointer text-center border-t-4 border-blue-500">
+                            <i data-lucide="compass" class="w-8 h-8 text-blue-600 mx-auto mb-3"></i>
+                            <h3 class="font-semibold text-lg">Tour Guides</h3>
+                            <p class="text-sm text-gray-500">Book an expert</p>
+                        </div>
+                        <div onclick="showPage('destinations')" class="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 cursor-pointer text-center border-t-4 border-yellow-500">
+                            <i data-lucide="map-pin" class="w-8 h-8 text-yellow-600 mx-auto mb-3"></i>
+                            <h3 class="font-semibold text-lg">Destinations</h3>
+                            <p class="text-sm text-gray-500">Explore the parks</p>
+                        </div>
+                        <div onclick="showPage('events')" class="p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 cursor-pointer text-center border-t-4 border-red-500">
+                            <i data-lucide="calendar" class="w-8 h-8 text-red-600 mx-auto mb-3"></i>
+                            <h3 class="font-semibold text-lg">Event Calendar</h3>
+                            <p class="text-sm text-gray-500">See what's next</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="py-12 px-4 max-w-7xl mx-auto">
+                    <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">User Testimonials</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500">
+                            <i data-lucide="quote" class="w-6 h-6 text-emerald-500 mb-3"></i>
+                            <p class="italic text-gray-600 mb-4">"Finding a group through this site was seamless. The organizer was verified and the hike was incredible!"</p>
+                            <p class="font-semibold text-sm">- Bethlehem Z., Addis Ababa</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
+                            <i data-lucide="quote" class="w-6 h-6 text-blue-500 mb-3"></i>
+                            <p class="italic text-gray-600 mb-4">"We used Yohannes A. for our Simien trek. His knowledge of the local culture and wildlife was unbeatable. Highly recommended."</p>
+                            <p class="font-semibold text-sm">- Mark P., International Visitor</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-yellow-500">
+                            <i data-lucide="quote" class="w-6 h-6 text-yellow-500 mb-3"></i>
+                            <p class="italic text-gray-600 mb-4">"This website made finding a guide for Bale Mountains so easy. The destination info was spot on!"</p>
+                            <p class="font-semibold text-sm">- Tofik M., Dire Dawa</p>
+                        </div>
+                    </div>
+                </section>
+            `;
+        };
+
+        const renderGroupsPage = (data) => {
+            const groupListHTML = data.map(group => `
+                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 border-l-4 border-emerald-500 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${group.name}</h3>
+                        <p class="text-sm text-emerald-600 mb-4 font-medium flex items-center">
+                            <i data-lucide="map-pin" class="w-4 h-4 mr-1 text-emerald-500"></i>
+                            ${group.locationTag}
+                        </p>
+                        <p class="text-gray-600 mb-4 text-sm">${group.description}</p>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm pt-4 border-t border-gray-100">
+                        <div class="flex items-center text-gray-700">
+                            <i data-lucide="user" class="w-4 h-4 mr-2 text-gray-500"></i>
+                            <span class="font-semibold">Organizer:</span> ${group.organizer}
+                        </div>
+                        <div class="flex items-center text-gray-700 truncate">
+                            <i data-lucide="mail" class="w-4 h-4 mr-2 text-gray-500"></i>
+                            <span class="font-semibold">Contact:</span> 
+                            <span class="text-blue-600 ml-1 truncate">${group.contactEmail}</span>
+                        </div>
+                        <a href="${group.telegramLink}" target="_blank" class="flex items-center justify-center mt-3 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition shadow-md">
+                            <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                            Join Telegram Group
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Verified Hiking Groups</h2>
+                    <p class="text-lg text-gray-600 mb-8">Connect directly with certified Ethiopian hiking organizers. All groups listed here are active and verified.</p>
+                    
+                    <!-- Search Control -->
+                    <div class="bg-white p-6 rounded-xl shadow-md mb-8 max-w-lg">
+                        <input type="text" id="group-search" onkeyup="filterGroups()" placeholder="Search by Group Name, Organizer, or Tag..." class="p-3 w-full border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+
+                    <!-- Group Listings -->
+                    <div id="group-listings" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${groupListHTML}
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderGuidesPage = (data) => {
+            const guideListHTML = data.map(guide => `
+                <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center hover:shadow-xl transition duration-300 border-t-4 border-blue-500">
+                    <img src="${guide.photo}" alt="${guide.name}" class="w-24 h-24 rounded-full object-cover mb-4 ring-2 ring-blue-300">
+                    <h3 class="text-xl font-bold text-gray-800 mb-1">${guide.name}</h3>
+                    <div class="flex mb-3 space-x-1">${renderStars(guide.rating)}</div>
+                    <p class="text-sm text-gray-500 mb-4 italic">"${guide.bio}"</p>
+                    <div class="text-sm text-gray-700">
+                        <div class="flex items-center justify-center">
+                            <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
+                            <span>${guide.contact}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Verified Tour Guides</h2>
+                    <p class="text-lg text-gray-600 mb-8">Connect with professional guides specializing in Ethiopian cultural and mountain treks.</p>
+                    
+                    <!-- Sort Control -->
+                    <div class="flex justify-end mb-8">
+                        <select id="guide-sort" onchange="sortGuides(this.value)" class="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="default">Sort By Default</option>
+                            <option value="rating_desc">Rating (Highest First)</option>
+                            <option value="rating_asc">Rating (Lowest First)</option>
+                        </select>
+                    </div>
+
+                    <!-- Guide Listings -->
+                    <div id="guide-listings" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        ${guideListHTML}
+                    </div>
+                </div>
+            `;
+        };
+        
+        const renderDestinationsPage = (data) => {
+            const destinationListHTML = data.map(dest => `
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden transition duration-300 hover:shadow-2xl">
+                    <img src="https://placehold.co/800x400/34D399/ffffff?text=${dest.name.replace(/\s/g, '+')}" alt="${dest.name}" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">${dest.name}</h3>
+                        <div class="flex items-center justify-between text-sm mb-4">
+                            <span class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full font-medium flex items-center">
+                                <i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> ${dest.location}
+                            </span>
+                            <span class="font-bold ${dest.difficulty === 'Expert' ? 'text-red-600' : dest.difficulty === 'Moderate' ? 'text-yellow-600' : 'text-emerald-600'}">
+                                ${dest.difficulty}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 mb-4">${dest.description}</p>
+                        <p class="text-sm font-semibold text-gray-700">Best Time to Visit: <span class="text-emerald-600">${dest.bestTime}</span></p>
+                    </div>
+                </div>
+            `).join('');
+
+            // The main structure for the Destinations page, including the map container
+            return `
+                <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Parks & Destinations</h2>
+                    <p class="text-lg text-gray-600 mb-8">Discover Ethiopia's national parks, historical sites, and epic hiking trails mapped out below.</p>
+                    
+                    <!-- MAP CONTAINER -->
+                    <div class="p-4 bg-white rounded-xl shadow-2xl mb-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                             <i data-lucide="map" class="w-6 h-6 mr-2 text-emerald-600"></i>
+                             Location Overview
+                        </h3>
+                        <div id="destinations-map"></div>
+                        <p class="text-sm text-gray-500 mt-4 text-center">Click on the markers to see the destination name.</p>
+                    </div>
+
+                    <!-- Destination Listings -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        ${destinationListHTML}
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderEventsPage = (data) => {
+             const eventListHTML = data.map(event => {
+                 // Check if the event uses the old link and needs correction for visual consistency
+                 const sourceLinkText = event.sourceLink.includes('t.me/enqu_hiking') ? 'View Event Details (Telegram)' : 'Contact Organizer';
+                 
+                 return `
+                    <div class="bg-white p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl ${event.isFeatured ? 'border-l-4 border-red-500' : 'border-l-4 border-emerald-500'}">
+                        <div class="flex items-start justify-between mb-3">
+                            <p class="text-lg font-extrabold ${event.isFeatured ? 'text-red-600' : 'text-emerald-700'}">${event.date}</p>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full ${event.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : event.difficulty === 'Moderate' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}">${event.difficulty}</span>
+                        </div>
+                        
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">${event.name}</h3>
+                        
+                        <div class="space-y-1 text-gray-600 text-sm mb-4">
+                            <p class="flex items-center"><i data-lucide="users" class="w-4 h-4 mr-2"></i> Organized by: <span class="font-semibold ml-1">${event.group}</span></p>
+                            <p class="flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-2"></i> Location: <span class="font-semibold ml-1">${event.location}</span></p>
+                            <p class="flex items-center"><i data-lucide="info" class="w-4 h-4 mr-2"></i> Status: <span class="font-semibold ml-1">${event.status}</span></p>
+                        </div>
+
+                        <a href="${event.sourceLink}" target="_blank" class="flex items-center justify-center mt-4 px-4 py-2 ${event.isFeatured ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-semibold rounded-lg transition shadow-md">
+                            <i data-lucide="external-link" class="w-5 h-5 mr-2"></i> 
+                            ${sourceLinkText}
+                        </a>
+                    </div>
+                 `
+             }).join('');
+
+             return `
+                <div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Upcoming Hiking Events</h2>
+                    <p class="text-lg text-gray-600 mb-8">This is the calendar for verified treks and tours. The Wenchi hike is featured at the top!</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        ${eventListHTML}
+                    </div>
+                    
+                    <div class="mt-12 p-6 bg-blue-100 rounded-xl text-center shadow-md">
+                        <p class="text-blue-700 font-semibold">
+                            For the most up-to-the-minute updates, please follow our official Telegram Channel: 
+                            <!-- UPDATED Telegram handle link -->
+                            <a href="https://t.me/hikingevent" target="_blank" class="text-blue-600 hover:underline flex items-center justify-center mt-2">
+                                <i data-lucide="send" class="w-5 h-5 mr-2"></i> @hikingevent
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        const renderContactPage = () => {
+            return `
+                <div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                    <h2 class="text-4xl font-extrabold text-gray-800 mb-4 border-b pb-2">Contact Us</h2>
+                    <p class="text-lg text-gray-600 mb-8">We'd love to hear from you! Send us a message or connect with us on social media.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-8 rounded-xl shadow-lg">
+                        <!-- Contact Form Container -->
+                        <div id="contact-form-container">
+                            <h3 class="text-2xl font-semibold text-emerald-600 mb-4">Send an Inquiry</h3>
+                            <form id="contact-form" onsubmit="event.preventDefault(); handleContactSubmit()" class="space-y-4">
+                                <div>
+                                    <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                                    <input type="text" id="name" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                                    <input type="email" id="email" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
+                                    <input type="text" id="subject" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+                                    <textarea id="message" rows="4" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+                                </div>
+                                <button type="submit" class="w-full px-4 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition shadow-md">Send Message</button>
+                            </form>
+                        </div>
+
+                        <!-- Info & Social -->
+                        <div class="mt-8 md:mt-0">
+                            <h3 class="text-2xl font-semibold text-emerald-600 mb-4">Our Details</h3>
+                            <div class="space-y-4 mb-8">
+                                <div class="flex items-center">
+                                    <i data-lucide="mail" class="w-5 h-5 text-emerald-500 mr-3"></i>
+                                    <p class="text-gray-700">hikingevents@gmail.com</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="phone" class="w-5 h-5 text-emerald-500 mr-3"></i>
+                                    <p class="text-gray-700">+251910853427</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-emerald-500 mr-3"></i>
+                                    <p class="text-gray-700">Addis Ababa, Ethiopia (HQ)</p>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-2xl font-semibold text-emerald-600 mb-4">Follow Us</h3>
+                            <div class="flex space-x-6">
+                                <!-- Instagram -->
+                                <a href="https://instagram.com/hikingevents" target="_blank" class="text-gray-500 hover:text-pink-600 transition" aria-label="Instagram"><i data-lucide="instagram" class="w-7 h-7"></i></a>
+                                <!-- Facebook -->
+                                <a href="https://www.facebook.com/hikingevents" target="_blank" class="text-gray-500 hover:text-blue-600 transition" aria-label="Facebook"><i data-lucide="facebook" class="w-7 h-7"></i></a>
+                                <!-- Telegram (UPDATED LINK) -->
+                                <a href="https://t.me/hikingevent" target="_blank" class="text-gray-500 hover:text-cyan-600 transition" aria-label="Telegram"><i data-lucide="send" class="w-7 h-7"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- DYNAMIC LOGIC ---
+
+        // Simple router/page manager
+        const pageRenderers = {
+            home: renderHomePage,
+            groups: () => renderGroupsPage(groupsData),
+            guides: () => renderGuidesPage(guidesData),
+            destinations: () => renderDestinationsPage(destinationsData),
+            events: () => renderEventsPage(eventsData), // Now uses the event data
+            contact: renderContactPage
+        };
+
+        const showPage = (pageName) => {
+            const container = document.getElementById('page-container');
+            if (pageRenderers[pageName]) {
+                container.innerHTML = pageRenderers[pageName]();
+                // Re-initialize Lucide icons for the new content
+                lucide.createIcons(); 
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // SPECIAL HANDLER for Destinations Page: Initialize the map after DOM is loaded
+                if (pageName === 'destinations') {
+                    // Use a slight delay to ensure the map div is fully rendered by the browser
+                    setTimeout(loadDestinationMap, 10); 
+                } else {
+                    // Clean up map instance if navigating away
+                    if (destinationsMapInstance) {
+                        destinationsMapInstance.remove();
+                        destinationsMapInstance = null;
+                    }
+                }
+
+            } else {
+                container.innerHTML = `<div class="p-16 text-center text-red-500">404 | Page Not Found</div>`;
+            }
+        };
+
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        const toggleMobileMenu = () => {
+            mobileMenu.classList.toggle('hidden');
+        };
+
+        mobileMenuButton.addEventListener('click', toggleMobileMenu);
+
+
+        // Group Filtering Logic (Now searches Name, Organizer, and Email)
+        const filterGroups = () => {
+            const searchTerm = document.getElementById('group-search').value.toLowerCase();
+
+            const filteredData = groupsData.filter(group => {
+                const matchesSearch = group.name.toLowerCase().includes(searchTerm) || 
+                                      group.organizer.toLowerCase().includes(searchTerm) ||
+                                      group.contactEmail.toLowerCase().includes(searchTerm) ||
+                                      group.description.toLowerCase().includes(searchTerm) ||
+                                      group.locationTag.toLowerCase().includes(searchTerm);
+                
+                return matchesSearch;
+            });
+            
+            // Re-render the group list
+            const groupListHTML = filteredData.map(group => `
+                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 border-l-4 border-emerald-500 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${group.name}</h3>
+                        <p class="text-sm text-emerald-600 mb-4 font-medium flex items-center">
+                            <i data-lucide="map-pin" class="w-4 h-4 mr-1 text-emerald-500"></i>
+                            ${group.locationTag}
+                        </p>
+                        <p class="text-gray-600 mb-4 text-sm">${group.description}</p>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm pt-4 border-t border-gray-100">
+                        <div class="flex items-center text-gray-700">
+                            <i data-lucide="user" class="w-4 h-4 mr-2 text-gray-500"></i>
+                            <span class="font-semibold">Organizer:</span> ${group.organizer}
+                        </div>
+                        <div class="flex items-center text-gray-700 truncate">
+                            <i data-lucide="mail" class="w-4 h-4 mr-2 text-gray-500"></i>
+                            <span class="font-semibold">Contact:</span> 
+                            <span class="text-blue-600 ml-1 truncate">${group.contactEmail}</span>
+                        </div>
+                        <a href="${group.telegramLink}" target="_blank" class="flex items-center justify-center mt-3 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition shadow-md">
+                            <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                            Join Telegram Group
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('group-listings').innerHTML = groupListHTML;
+            lucide.createIcons(); // Re-initialize icons
+        };
+
+
+        // Guide Sorting Logic
+        const sortGuides = (criteria) => {
+            let sortedData = [...guidesData]; // Work with a copy
+
+            switch (criteria) {
+                case 'rating_desc':
+                    sortedData.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'rating_asc':
+                    sortedData.sort((a, b) => a.rating - b.rating);
+                    break;
+                case 'default':
+                default:
+                    sortedData = guidesData; // Restore original order
+                    break;
+            }
+
+            // Re-render the guide listings section
+            const guideListHTML = sortedData.map(guide => `
+                <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center hover:shadow-xl transition duration-300 border-t-4 border-blue-500">
+                    <img src="${guide.photo}" alt="${guide.name}" class="w-24 h-24 rounded-full object-cover mb-4 ring-2 ring-blue-300">
+                    <h3 class="text-xl font-bold text-gray-800 mb-1">${guide.name}</h3>
+                    <div class="flex mb-3 space-x-1">${renderStars(guide.rating)}</div>
+                    <p class="text-sm text-gray-500 mb-4 italic">"${guide.bio}"</p>
+                    <div class="text-sm text-gray-700">
+                        <div class="flex items-center justify-center">
+                            <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
+                            <span>${guide.contact}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('guide-listings').innerHTML = guideListHTML;
+            lucide.createIcons(); // Re-initialize icons
+        }
+
+
+        // Initialize the app to the home page
+        window.onload = () => {
+            showPage('home');
+        };
+
+    </script>
+</body>
+</html>
