@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiking Events Ethiopia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --color-primary: #10B981; /* Emerald Green */
+            --color-secondary: #EF4444; /* Red for alerts/CTAs */
+            --color-text-dark: #1F2937; /* Dark Grey */
+            --color-background: #F9FAFB; /* Light Grey Background */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-dark);
+        }
+        .hero-bg {
+            background-image: url('https://placehold.co/1200x600/10b981/ffffff?text=Simien+Mountains');
+            background-size: cover;
+            background-position: center;
+        }
+        .page-content {
+            min-height: calc(100vh - 80px); /* Adjust for header/footer */
+        }
+        /* Style for the map container */
+        #destinations-map {
+            height: 400px; /* Fixed height for the map section */
+            width: 100%;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            z-index: 10; /* Ensures map elements are above other content if necessary */
+        }
+        /* Style for the Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 90%;
+            width: 500px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <a href="#" onclick="showPage('home')" class="text-2xl font-bold text-emerald-600 tracking-wider">
+                    Hiking<span class="text-gray-700">Events</span>
+                </a>
+                
+                <nav class="hidden md:flex space-x-6 text-gray-600 font-medium">
+                    <a href="#" onclick="showPage('home')" class="hover:text-emerald-600 transition duration-150">Home</a>
+                    <a href="#" onclick="showPage('groups')" class="hover:text-emerald-600 transition duration-150">Groups</a>
+                    <a href="#" onclick="showPage('guides')" class="hover:text-emerald-600 transition duration-150">Guides</a>
+                    <a href="#" onclick="showPage('destinations')" class="hover:text-emerald-600 transition duration-150">Destinations</a>
+                    <a href="#" onclick="showPage('events')" class="hover:text-emerald-600 transition duration-150">Events</a>
+                    <a href="#" onclick="showPage('contact')" class="hover:text-emerald-600 transition duration-150">Contact</a>
+                    <a href="#" onclick="showPage('admin')" class="text-red-500 font-bold border-l pl-6 hover:text-red-700 transition duration-150">Admin</a>
+                </nav>
+
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-emerald-600 focus:outline-none" aria-label="Menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class.classList.toggle('hidden'); toggleMobileMenu()" class="hidden md:hidden bg-white shadow-lg">
+            <a href="#" onclick="showPage('home'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
+            <a href="#" onclick="showPage('groups'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Groups</a>
+            <a href="#" onclick="showPage('guides'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Guides</a>
+            <a href="#" onclick="showPage('destinations'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Destinations</a>
+            <a href="#" onclick="showPage('events'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Events</a>
+            <a href="#" onclick="showPage('contact'); toggleMobileMenu()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Contact</a>
+            <a href="#" onclick="showPage('admin'); toggleMobileMenu()" class="block px-4 py-2 text-red-700 font-bold hover:bg-gray-100">Admin Panel</a>
+        </div>
+    </header>
+    
+    <main class="page-content">
+        <div id="page-container">
+            </div>
+    </main>
+    
+    <div id="event-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-2xl font-bold mb-4 text-emerald-600">Add New Event</h3>
+            <form id="event-form" onsubmit="event.preventDefault(); saveEvent(event);">
+                <input type="hidden" id="event-id">
+
+                <div class="mb-4">
+                    <label for="event-name" class="block text-sm font-medium text-gray-700">Event Name</label>
+                    <input type="text" id="event-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                </div>
+                <div class="mb-4">
+                    <label for="event-date" class="block text-sm font-medium text-gray-700">Date (e.g., Sunday, Oct 12, 2025)</label>
+                    <input type="text" id="event-date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                </div>
+                <div class="mb-4">
+                    <label for="event-group" class="block text-sm font-medium text-gray-700">Group Name (Must exist in Groups List)</label>
+                    <select id="event-group" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                        </select>
+                </div>
+                <div class="mb-4">
+                    <label for="event-location" class="block text-sm font-medium text-gray-700">Location</label>
+                    <input type="text" id="event-location" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                </div>
+                <div class="mb-4">
+                    <label for="event-difficulty" class="block text-sm font-medium text-gray-700">Difficulty</label>
+                    <select id="event-difficulty" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                        <option value="Easy">Easy</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Challenging">Challenging</option>
+                        <option value="Difficult">Difficult</option>
+                        <option value="Expert">Expert</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="event-status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="event-status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                        <option value="Open - Book Now!">Open - Book Now!</option>
+                        <option value="Completed (Past Event)">Completed (Past Event)</option>
+                        <option value="Inactive (Postponed)">Inactive (Postponed)</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="event-sourceLink" class="block text-sm font-medium text-gray-700">Source Link (Telegram/URL)</label>
+                    <input type="url" id="event-sourceLink" placeholder="https://t.me/yourlink" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                </div>
+                <div class="flex items-center mb-6">
+                    <input type="checkbox" id="event-isFeatured" class="h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500">
+                    <label for="event-isFeatured" class="ml-2 block text-sm font-medium text-gray-700">Feature this event?</label>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Hiking Events</h4>
+                    <p class="text-gray-400 text-sm">Your gateway to the best hiking groups, guides, and breathtaking destinations in Ethiopia.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Quick Links</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" onclick="showPage('groups')" class="text-gray-400 hover:text-emerald-400">Hiking Groups</a></li>
+                        <li><a href="#" onclick="showPage('guides')" class="text-gray-400 hover:text-emerald-400">Tour Guides</a></li>
+                        <li><a href="#" onclick="showPage('destinations')" class="text-gray-400 hover:text-emerald-400">Parks & Destinations</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Get in Touch</h4>
+                    <p class="text-gray-400 text-sm">Email: hikingevents@gmail.com</p>
+                    <p class="text-gray-400 text-sm">Phone: +251910853427</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-3 text-emerald-400">Stay Connected</h4>
+                    <div class="flex space-x-3 mb-4">
+                        <a href="https://instagram.com/hikingevents" target="_blank" class="text-gray-400 hover:text-white" aria-label="Instagram"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                        <a href="https://www.facebook.com/hikingevents" target="_blank" class="text-gray-400 hover:text-white" aria-label="Facebook"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                        <a href="https://t.me/hikingevent" target="_blank" class="text-gray-400 hover:text-white" aria-label="Telegram"><i data-lucide="send" class="w-5 h-5"></i></a>
+                    </div>
+                    <form onsubmit="event.preventDefault(); newsletterSignup()">
+                        <input type="email" placeholder="Join Newsletter" class="p-2 w-full text-sm rounded-l-md text-gray-900 focus:outline-none">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 w-full rounded-b-md transition">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center text-sm text-gray-500 mt-8 pt-4 border-t border-gray-700">
+                &copy; 2024 Hiking Events. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+        
+        // Global map variable to manage the map instance
+        let destinationsMapInstance = null;
+
+        // --- REAL GROUP DATA (Used for event creation dropdown) ---
+        const groupsData = [
+            { id: 1, name: "Aesop Hiking and Camping", organizer: "Alexander Yohannes", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/aesop_999", locationTag: "Addis Area", description: "Organizes diverse hiking and camping trips. Contact organizer for details.", },
+            { id: 2, name: "Khul Wholeness Center", organizer: "Besufkad Getachew", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/KhulWorld", locationTag: "Wellness Focus", description: "Focuses on holistic wellness treks and nature connection experiences.", },
+            { id: 3, name: "Negestat Event Organizer", organizer: "Bereket Getachew", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/NEGESTATEVENTORGANIZER", locationTag: "Events & Treks", description: "A professional organizer focusing on event-based and custom treks.", },
+            { id: 4, name: "Enqu Travel", organizer: "Yonas Belay", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/enqu_hiking", locationTag: "Award Winner", description: "A highly-rated travel group offering premium hiking and travel packages.", },
+            { id: 5, name: "Cozy Trip", organizer: "Eyerusalem Tsegaye", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/+FrZ_3l1OhVYwMDA0", locationTag: "Cozy Trips", description: "Known for comfortable and well-organized, relaxed travel excursions.", },
+            { id: 6, name: "Hikologist", organizer: "Rahel Mulugeta Bekelet", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/Hikologist", locationTag: "Diverse Regions", description: "Explores wide and diverse regions of Ethiopia focusing on in-depth trekking.", },
+            { id: 7, name: "Ha-Geez Hiking", organizer: "Gezu Belachew Nedhi", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/HaGeezHikingClub", locationTag: "Culture & History", description: "Organizes treks with a focus on cultural and historical sites.", },
+            { id: 8, name: "Euphoria Hiking", organizer: "Kalkidan Abayneh", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/euphoriahiking44", locationTag: "Euphoria Treks", description: "A dynamic group offering high-energy and exciting outdoor adventures.", },
+            { id: 9, name: "Melona Hiking", organizer: "Yordanos Selifu", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/melonatravel", locationTag: "Melona Travel", description: "Provides customized hiking and travel experiences across Ethiopia.", },
+            { id: 10, name: "Savanna Hiking / SAVANNA HIKING AND EVENT'S", organizer: "Hawariyaw Thomas / Eyob Neguse Mekuria", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/Savannahikes", locationTag: "Events & Excursions", description: "Organizes hikes alongside various social and recreational events.", },
+            { id: 11, name: "Yeha Hiking", organizer: "Iyassu Mengistu", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/+UhBbZ5o3q382NzM0", locationTag: "Yeha Treks", description: "Dedicated to exploring the ancient and scenic locations around Ethiopia.", },
+            { id: 12, name: "Maleda Tour and Travel", organizer: "Rabira Chimdo", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/maledahikings", locationTag: "Tour Operator", description: "A professional tour and travel company offering specialized hiking packages.", },
+            { id: 13, name: "Isaac Hiking and Camping", organizer: "Abenezer Samuel / Abenazer Samuel Madebo", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/Visitthemotherland", locationTag: "Motherland Tours", description: "Focuses on providing deep and memorable experiences of the Ethiopian motherland.", },
+            { id: 14, name: "Royal Hiking", organizer: "Anwar Ali", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/royalhikin", locationTag: "Royal Treks", description: "Provides high-quality, memorable hiking adventures.", },
+            { id: 15, name: "Oko Hiking", organizer: "Siyane Yonas", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/Okohiking", locationTag: "Oko Adventures", description: "A focused hiking group offering regular local and regional trips.", },
+            { id: 16, name: "Hasset Hiking", organizer: "Nasredin Mohamed", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/hassethiking", locationTag: "Short Treks", description: "Known for quick, accessible hiking events, often on weekends.", },
+            { id: 17, name: "Ymdralem Tour and Travel", organizer: "Nuhamin Mekonen", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/loonahhiking", locationTag: "Ymdralem Tours", description: "Organizes comprehensive tours including hiking and cultural visits.", },
+            { id: 18, name: "Joud Tour and Hiking", organizer: "Fuad Musema", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/joudtour", locationTag: "Joud Adventures", description: "Offers a combination of tourist attractions and challenging hikes.", },
+            { id: 19, name: "Shanko Travel Ethiopia", organizer: "Amanuel Assefa Eshete", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/+9tDb28P9WV4yOGQ0", locationTag: "Shanko Travel", description: "A travel group specializing in exploring the remote parts of Ethiopia.", },
+            { id: 20, name: "Gamee.hiking", organizer: "Aklsieya Seyoum Yirga", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/gameehiking", locationTag: "Gamee Treks", description: "A dynamic group known for exploring various unique Ethiopian regions.", },
+            { id: 21, name: "Stellar Tour and Travel", organizer: "Yonas Kifle", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/stellartourandtravel", locationTag: "Tour Operator", description: "A professional tour and travel company offering trekking and destination packages.", },
+            { id: 22, name: "Ergibaye Habesha Travel & Hiking Event", organizer: "Ergibe Wondimu Gebrekidan", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/cometravelergibayetour", locationTag: "Habesha Travel", description: "Specializes in traditional Ethiopian travel and hiking event organization.", },
+            { id: 23, name: "ዙረት (Zuret)", organizer: "Kibrewosen Asefa", contactEmail: "Contact via Telegram", telegramLink: "https://t.me/Zuretcamping", locationTag: "Zuret Camping", description: "Focuses on providing great camping and trekking experiences.", },
+            { id: 24, name: "Iconic Hiking", organizer: "Dawit Dave", contactEmail: "Contact via Telegram/Phone", telegramLink: "https://t.me/iconichiking", locationTag: "Addis Area", description: "A well-known group focusing on scenic day trips and adventures near the capital.", },
+        ];
+
+        // --- UPDATED TOUR GUIDE DATA (For other sections) ---
+        const guidesData = [
+            { id: 1, name: "Daniel Tefera", photo: "https://placehold.co/100x100/10b981/ffffff?text=D.T", contact: "daniel@tesfa.com", rating: 4.9, bio: "Expert guide for Tesfa, specializing in high-demand routes and reliable logistics." },
+            { id: 2, name: "Shigigir Ayele", photo: "https://placehold.co/100x100/3B82F6/ffffff?text=S.A", contact: "shigigir.ayele@untravelledpaths.com", rating: 4.5, bio: "A dedicated tour guide with Untravelled Paths Ltd, focusing on comprehensive leisure and travel experiences." },
+            { id: 3, name: "Gashaw Newt", photo: "https://placehold.co/100x100/F59E0B/ffffff?text=G.N", contact: "gashawn@asos.com", rating: 4.2, bio: "Freelance guide and self-employed traveler, offering unique perspectives on Ethiopian landscapes." },
+            { id: 4, name: "Eshet Ethio", photo: "https://placehold.co/100x100/6B7280/ffffff?text=E.E", contact: "eshet.ethio@eshet-tours.com", rating: 4.8, bio: "Professional tour guide with Eshet Tour, providing premium leisure and travel services." },
+            { id: 5, name: "Eshetu Belay", photo: "https://placehold.co/100x100/EF4444/ffffff?text=E.B", contact: "deyu2000@hotmail.com", rating: 4.3, bio: "Tour guide specializing in Ethiopian ornithology and environmental services through Bird In Ethiopia." },
+            { id: 6, name: "Melaku Girma", photo: "https://placehold.co/100x100/1D4ED8/ffffff?text=M.G", contact: "melaku.girma@aau.edu.et", rating: 4.1, bio: "Guide affiliated with an educational institution, providing high-level cultural and academic tours." },
+            { id: 7, name: "Liben Chane", photo: "https://placehold.co/100x100/059669/ffffff?text=L.C", contact: "liben_chane@yahoo.com", rating: 4.7, bio: "Tour guide focused on personalized travel packages and leisure experiences." },
+            { id: 8, name: "Gebremedhine Abraha", photo: "https://placehold.co/100x100/9CA3AF/ffffff?text=G.A", contact: "gebremedhinekidane@yahoo.com", rating: 4.0, bio: "Tour guide with a background in management consulting, ensuring highly organized trips." },
+            { id: 9, name: "Tewodros Demessie", photo: "https://placehold.co/100x100/F97316/ffffff?text=T.D", contact: "support@toursbylocals.com", rating: 5.0, bio: "Certified tour guide for Toursbylocals, specializing in hospitality and localized experiences." },
+            { id: 10, name: "Sosena Kasahun", photo: "https://placehold.co/100x100/10B981/ffffff?text=S.K", contact: "sosena7@yahoo.com", rating: 4.6, bio: "Professional guide from Tour & Travel Resources Inc, focused on creating rich travel itineraries." },
+            { id: 11, name: "Teshome Tadesse", photo: "https://placehold.co/100x100/3B82F6/ffffff?text=T.T", contact: "amaliteshe@yahoo.com", rating: 4.3, bio: "Tourist guide affiliated with Blueniletoursethiopia, known for historical and regional tours." },
+            { id: 12, name: "Asfaw Aynalem", photo: "https://placehold.co/100x100/F59E0B/ffffff?text=A.A", contact: "asfawaynalem1@yahoo.com", rating: 4.0, bio: "Driver Guide specializing in travel logistics and mechanical support during treks." },
+            { id: 13, name: "John Grinling", photo: "https://placehold.co/100x100/6B7280/ffffff?text=J.G", contact: "grinlingj@bluewin.ch", rating: 4.9, bio: "Independent guide for Ethiopie À La Carte, providing flexible and bespoke travel experiences." },
+            { id: 14, name: "Bereket Tequabo", photo: "https://placehold.co/100x100/EF4444/ffffff?text=B.T", contact: "bereket.tequabo@gmail.com", rating: 4.5, bio: "Guide for Asharatours Ethiopia, leveraging technology for secure and seamless trip planning." },
+            { id: 15, name: "Gebré Yirdaw", photo: "https://placehold.co/100x100/1D4ED8/ffffff?text=G.Y", contact: "gebre.yirdaw@gmail.com", rating: 4.7, bio: "Guide with Sunny Smile Ethiopia, dedicated to providing joyful and memorable leisure travel." },
+            { id: 16, name: "Fiorella Mario", photo: "https://placehold.co/100x100/059669/ffffff?text=F.M", contact: "bookinglaketana@gmail.com", rating: 4.2, bio: "Guide specializing in tours around Lake Tana, offering unique historical and scenic tours." },
+            { id: 17, name: "Renato Enrico", photo: "https://placehold.co/100x100/9CA3AF/ffffff?text=R.E", contact: "amenmaranatha@gmail.com", rating: 4.4, bio: "Professional tour guide and operator focusing on educational and cultural expeditions." },
+            { id: 18, name: "Bereket Tadesse", photo: "https://placehold.co/100x100/F97316/ffffff?text=B.T", contact: "meetthetribes@gmail.com", rating: 5.0, bio: "Travel guide and organizer for Ethnic Ethioipia Tour, specializing in remote tribal and cultural visits." },
+            { id: 19, name: "Getachew Enyew", photo: "https://placehold.co/100x100/10B981/ffffff?text=G.E", contact: "getachew.enyew@gmail.com", rating: 4.6, bio: "Adventure guide specializing in mountain biking and environmental conservation tours." },
+            { id: 20, name: "Berhanu Haymanot", photo: "https://placehold.co/100x100/3B82F6/ffffff?text=B.H", contact: "berhn_h@yahoo.com", rating: 4.1, bio: "Tour guide associated with Mountview Hotel, offering local expertise and hospitality services." }
+        ];
+
+        // IMPORTANT: Added Lat/Lng coordinates for mapping
+        const destinationsData = [
+            { id: 1, name: "Simien Mountains National Park", location: "Gondar", difficulty: "Difficult", bestTime: "September - November", description: "A UNESCO World Heritage site known for its dramatic landscapes, deep canyons, and endemic wildlife like the Gelada Baboon.", lat: 13.1706, lng: 38.2917 },
+            { id: 2, name: "Bale Mountains National Park", location: "Oromia Region", difficulty: "Moderate", bestTime: "October - March", description: "Home to the Ethiopian Wolf and stunning Afro-alpine forests. Offers diverse environments from tropical to high mountain zones.", lat: 6.9535, lng: 39.7561 },
+            { id: 3, name: "Erta Ale Volcano", location: "Afar Region", difficulty: "Expert", bestTime: "November - February", description: "One of the few permanent lava lakes in the world. An extremely challenging trek often done at night.", lat: 13.606, lng: 40.669 },
+            { id: 4, name: "Wenchi Crater Lake", location: "Oromia Region", difficulty: "Easy", bestTime: "All Year", description: "A beautiful caldera lake offering boat rides and gentle hiking trails.", lat: 8.7909, lng: 37.8931 },
+        ];
+        
+        // --- EVENT DATA (Now a mutable `let` for Admin updates) ---
+        let eventsData = [
+            // ACTIVE event 
+            {
+                id: 10, 
+                date: "Sunday, October 12, 2025",
+                name: "Wenchi Crater Lake Hike (Round 5)",
+                group: "Enqu Travel", 
+                difficulty: "Easy", 
+                status: "Open - Book Now!",
+                sourceLink: "https://t.me/enqu_hiking",
+                location: "Wenchi Crater Lake, Oromia Region",
+                isFeatured: true
+            },
+            // Completed events
+            {
+                id: 13,
+                date: "Oct 4 - 5, 2025 (2 Days)",
+                name: "Wenchi Trip – A Weekend Packed with Adventure",
+                group: "Local Adventure Organizers", 
+                difficulty: "Moderate",
+                status: "Completed (Just Concluded)",
+                sourceLink: "tel:+251965706767", 
+                location: "Wenchi Crater Lake, Oromia Region",
+                isFeatured: false
+            },
+            {
+                id: 12,
+                date: "Sept 26 - 29, 2025 (4 Days)",
+                name: "Meskel Gurage Edition: 4-Day Trek to Gurage Sebat Bet",
+                group: "ዙረት (Zuret)",
+                difficulty: "Challenging",
+                status: "Completed (Past Event)",
+                sourceLink: "https://t.me/Zuretcamping",
+                location: "Gurage Sebat Bet, SNNPR", 
+                isFeatured: false
+            },
+            {
+                id: 11,
+                date: "Sunday, September 21, 2025",
+                name: "Hiking to 'Suba National Forest park and Meti waterfall'",
+                group: "Iconic Hiking",
+                difficulty: "Moderate", 
+                status: "Completed (Past Event)",
+                sourceLink: "http://www.instagram.com/iconichiking",
+                location: "Suba Menagsha Forest, Oromia Region (near Addis)",
+                isFeatured: false
+            },
+            // Future events set to INACTIVE
+            {
+                id: 1,
+                date: "Nov 29 - Dec 3, 2025",
+                name: "Epic Trek to Mount Abune Yosef (Lalibela)",
+                group: "Stellar Tour and Travel",
+                difficulty: "Challenging",
+                status: "Inactive (Postponed)",
+                sourceLink: "https://t.me/hikingevent/2259",
+                location: "Lalibela Area, Amhara Region",
+                isFeatured: false
+            },
+            {
+                id: 2,
+                date: "Dec 15, 2024",
+                name: "Simien Mountains Trek (7 Days)",
+                group: "Stellar Tour and Travel",
+                difficulty: "Difficult",
+                status: "Inactive (Postponed)",
+                sourceLink: "#",
+                location: "Simien Mountains National Park",
+                isFeatured: false
+            },
+            {
+                id: 3,
+                date: "Jan 5, 2026", 
+                name: "Entoto Day Hike",
+                group: "Aesop Hiking and Camping",
+                difficulty: "Easy",
+                status: "Inactive (Postponed)",
+                sourceLink: "https://t.me/aesop_999",
+                location: "Entoto Mountain, Addis Ababa",
+                isFeatured: false
+            },
+            {
+                id: 4,
+                date: "Feb 20, 2026",
+                name: "Khul Wellness Trek",
+                group: "Khul Wholeness Center",
+                difficulty: "Moderate",
+                status: "Inactive (Postponed)",
+                sourceLink: "https://t.me/KhulWorld",
+                location: "Bishoftu (Debre Zeit)",
+                isFeatured: false
+            },
+        ];
+
+        // --- UTILITY FUNCTIONS ---
+
+        /** Renders star icons based on a rating value. */
+        const renderStars = (rating) => {
+            const fullStars = Math.floor(rating);
+            const halfStar = rating % 1 !== 0;
+            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+            let html = '';
+
+            // Full Stars
+            for (let i = 0; i < fullStars; i++) {
+                html += '<i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-yellow-400"></i>';
+            }
+            // Half Star
+            if (halfStar) {
+                // Using a slightly offset full star to represent half visually since Lucide's star-half icon doesn't fill the background well
+                html += '<i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current opacity-50"></i>';
+            }
+            // Empty Stars
+            for (let i = 0; i < emptyStars; i++) {
+                html += '<i data-lucide="star" class="w-4 h-4 text-gray-300"></i>';
+            }
+            return html;
+        };
+
+        /** Handles newsletter signup (mock) */
+        const newsletterSignup = () => {
+            // In a real app, this would send data to a server.
+            console.log('Newsletter signed up!');
+            document.getElementById('page-container').innerHTML = `
+                <div class="max-w-xl mx-auto py-12 px-4 text-center">
+                    <h2 class="text-3xl font-bold text-emerald-600 mb-4">Thanks for Subscribing!</h2>
+                    <p class="text-lg text-gray-600">You'll receive updates on the latest hiking events and news.</p>
+                    <button onclick="showPage('home')" class="mt-6 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition">Go Home</button>
+                </div>
+            `;
+        }
+        
+        /** Handles contact form submission (No longer uses alert()) */
+        const handleContactSubmit = () => {
+            // Get the form container
+            const formContainer = document.getElementById('contact-form-container');
+            
+            // Clear the form content and display the success message
+            formContainer.innerHTML = `
+                <div class="p-6 bg-emerald-100 border-l-4 border-emerald-500 text-emerald-700 rounded-xl shadow-inner">
+                    <h4 class="text-2xl font-bold mb-2 flex items-center">
+                        <i data-lucide="check-circle" class="w-6 h-6 mr-2"></i> Message Sent!
+                    </h4>
+                    <p>Thank you for reaching out. We have successfully received your inquiry and will respond shortly.</p>
+                </div>
+                <button onclick="showPage('contact')" class="mt-6 px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition shadow-md">
+                    Send Another Message
+                </button>
+            `;
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+        }
+
+        // --- MAP INITIALIZATION FUNCTION ---
+        const loadDestinationMap = () => {
+            // Clean up previous map instance if it exists
+            if (destinationsMapInstance) {
+                destinationsMapInstance.remove();
+                destinationsMapInstance = null;
+            }
+
+            const mapElement = document.getElementById('destinations-map');
+            if (!mapElement) return; // Exit if not on the destinations page
+
+            // Initialize the map (Centered near Addis Ababa: 9.00 N, 38.75 E)
+            destinationsMapInstance = L.map('destinations-map').setView([9.03, 38.74], 6);
+
+            // Add the tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(destinationsMapInstance);
+
+            // Add markers for destinations
+            destinationsData.forEach(dest => {
+                L.marker([dest.lat, dest.lng])
+                    .addTo(destinationsMapInstance)
+                    .bindPopup(`<b>${dest.name}</b><br>${dest.location}<br>Difficulty: ${dest.difficulty}`);
+            });
+        };
+
+        // --- PAGE RENDERING FUNCTIONS ---
+
+        const homePageContent = () => `
+            <div class="hero-bg text-white py-24 sm:py-32 flex items-center">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center bg-black bg-opacity-40 p-8 rounded-xl">
+                    <h1 class="text-5xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl mb-4">
+                        Discover the Peaks of <span class="text-emerald-400">Ethiopia</span>
+                    </h1>
+                    <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-200">
+                        Find the best hiking events, groups, and guides for your next adventure in the Ethiopian highlands and beyond.
+                    </p>
+                    <div class="mt-8 flex justify-center space-x-4">
+                        <button onclick="showPage('events')" class="px-8 py-3 bg-emerald-600 text-white font-semibold rounded-full shadow-lg hover:bg-emerald-700 transition transform hover:scale-105">
+                            Find Events
+                        </button>
+                        <button onclick="showPage('destinations')" class="px-8 py-3 bg-red-600 text-white font-semibold rounded-full shadow-lg hover:bg-red-700 transition transform hover:scale-105">
+                            Explore Destinations
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">Featured Active Event 🔥</h2>
+                ${eventsData.filter(e => e.isFeatured).length > 0 ?
+                    eventsData.filter(e => e.isFeatured).map(event => `
+                        <div class="bg-white p-6 rounded-xl shadow-2xl border-4 border-emerald-500 max-w-3xl mx-auto">
+                            <p class="text-sm font-semibold text-red-600 mb-1 flex items-center"><i data-lucide="calendar-check" class="w-4 h-4 mr-1"></i> ${event.status}</p>
+                            <h3 class="text-3xl font-extrabold text-gray-900 mb-2">${event.name}</h3>
+                            <p class="text-xl text-emerald-600 font-semibold mb-4"><i data-lucide="calendar" class="w-5 h-5 inline mr-2"></i>${event.date}</p>
+                            <p class="text-gray-600 mb-4"><span class="font-semibold text-gray-800">Organized by:</span> ${event.group}</p>
+                            <p class="text-gray-600 mb-4"><span class="font-semibold text-gray-800">Location:</span> ${event.location}</p>
+                            <p class="text-gray-600 mb-6"><span class="font-semibold text-gray-800">Difficulty:</span> <span class="font-bold text-lg text-red-500">${event.difficulty}</span></p>
+                            <a href="${event.sourceLink}" target="_blank" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 transition">
+                                <i data-lucide="link" class="w-5 h-5 mr-2"></i> View Details / Register
+                            </a>
+                        </div>
+                    `).join('')
+                    :
+                    `<p class="text-center text-lg text-gray-500">No events are currently featured. Check the <a href="#" onclick="showPage('events')" class="text-emerald-600 font-semibold hover:text-emerald-700">Events page</a> for all listings.</p>`
+                }
+            </section>
+
+            <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-white rounded-xl shadow-lg my-12">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">Top Destinations</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    ${destinationsData.slice(0, 4).map(dest => `
+                        <div class="bg-gray-50 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300">
+                            <div class="p-4">
+                                <h4 class="text-xl font-semibold text-emerald-600 mb-2">${dest.name}</h4>
+                                <p class="text-gray-600 text-sm mb-3">${dest.description.substring(0, 70)}...</p>
+                                <div class="flex justify-between items-center text-sm text-gray-500">
+                                    <span class="flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> ${dest.location}</span>
+                                    <span class="font-medium text-red-500">${dest.difficulty}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="text-center mt-8">
+                    <button onclick="showPage('destinations')" class="px-6 py-3 border border-emerald-600 text-emerald-600 font-semibold rounded-lg hover:bg-emerald-50 transition">
+                        View All Destinations
+                    </button>
+                </div>
+            </section>
+        `;
+
+        const groupsPageContent = () => `
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <h2 class="text-4xl font-bold text-center text-gray-800 mb-4">Ethiopian Hiking Groups ⛰️</h2>
+                <p class="text-center text-xl text-gray-600 mb-10 max-w-3xl mx-auto">Connect with a thriving community! Find your next trekking partner among these trusted organizers and clubs.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    ${groupsData.map(group => `
+                        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 border-t-4 border-emerald-500">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">${group.name}</h3>
+                            <p class="text-sm font-medium text-emerald-600 mb-3"><i data-lucide="user" class="w-4 h-4 inline mr-1"></i> Organizer: ${group.organizer}</p>
+                            <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mb-4">${group.locationTag}</span>
+                            <p class="text-gray-600 mb-4">${group.description}</p>
+                            <a href="${group.telegramLink}" target="_blank" class="inline-flex items-center text-red-600 hover:text-red-700 font-semibold">
+                                <i data-lucide="send" class="w-5 h-5 mr-2"></i> Join on Telegram
+                            </a>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        const guidesPageContent = () => `
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <h2 class="text-4xl font-bold text-center text-gray-800 mb-4">Professional Hiking Guides 🗺️</h2>
+                <p class="text-center text-xl text-gray-600 mb-10 max-w-3xl mx-auto">Licensed and experienced guides ready to lead you safely through Ethiopia's most beautiful and remote regions.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    ${guidesData.map(guide => `
+                        <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition duration-300 flex flex-col items-center text-center">
+                            <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-3 overflow-hidden">
+                                <img src="${guide.photo}" alt="${guide.name}" class="object-cover w-full h-full"/>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900">${guide.name}</h3>
+                            <div class="flex items-center mt-1 mb-3">
+                                ${renderStars(guide.rating)}
+                                <span class="ml-2 text-sm text-yellow-500 font-semibold">(${guide.rating})</span>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-3">${guide.bio}</p>
+                            <a href="mailto:${guide.contact}" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 mt-auto">
+                                <i data-lucide="mail" class="w-4 h-4 inline mr-1"></i> Contact Guide
+                            </a>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        const destinationsPageContent = () => `
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <h2 class="text-4xl font-bold text-center text-gray-800 mb-4">Breathtaking Destinations 🧭</h2>
+                <p class="text-center text-xl text-gray-600 mb-10 max-w-3xl mx-auto">From the peaks of the Simiens to the lava lake of Erta Ale, explore where your next Ethiopian trek will take you.</p>
+
+                <div id="destinations-map" class="rounded-xl shadow-2xl mb-12"></div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    ${destinationsData.map(dest => `
+                        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 border-l-4 border-red-500">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">${dest.name}</h3>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-medium text-emerald-600 flex items-center"><i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> ${dest.location}</span>
+                                <span class="inline-block bg-red-100 text-red-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">${dest.difficulty}</span>
+                            </div>
+                            <p class="text-gray-600 mb-4">${dest.description}</p>
+                            <div class="text-sm text-gray-500">
+                                Best Time to Visit: <span class="font-semibold text-gray-700">${dest.bestTime}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        const eventsPageContent = () => {
+            const featuredEvents = eventsData.filter(e => e.isFeatured);
+            const openEvents = eventsData.filter(e => e.status.includes('Open') && !e.isFeatured);
+            const pastEvents = eventsData.filter(e => e.status.includes('Completed'));
+            const inactiveEvents = eventsData.filter(e => e.status.includes('Inactive') || e.status.includes('Cancelled'));
+
+            // Helper to get color based on status
+            const getStatusColor = (status) => {
+                if (status.includes('Open')) return 'bg-emerald-100 text-emerald-800 border-emerald-500';
+                if (status.includes('Completed')) return 'bg-gray-100 text-gray-700 border-gray-500';
+                if (status.includes('Inactive') || status.includes('Cancelled')) return 'bg-yellow-100 text-yellow-800 border-yellow-500';
+                return 'bg-blue-100 text-blue-800 border-blue-500';
+            };
+
+            const renderEventCard = (event) => `
+                <div class="bg-white p-5 rounded-xl shadow-lg border-l-4 ${event.isFeatured ? 'border-red-600 shadow-2xl' : 'border-emerald-600'} hover:shadow-xl transition duration-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-gray-900">${event.name}</h3>
+                        <span class="inline-block text-xs font-semibold px-3 py-1 rounded-full ${getStatusColor(event.status)}">${event.difficulty}</span>
+                    </div>
+                    <p class="text-sm font-medium text-emerald-600 mb-1"><i data-lucide="calendar" class="w-4 h-4 inline mr-1"></i> ${event.date}</p>
+                    <p class="text-gray-600 text-sm mb-3"><i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i> ${event.location}</p>
+                    <p class="text-gray-700 text-base mb-4">Organized by: <span class="font-semibold">${event.group}</span></p>
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+                        <span class="text-xs font-semibold ${getStatusColor(event.status)} px-2 py-1 rounded">${event.status}</span>
+                        <a href="${event.sourceLink}" target="_blank" class="text-emerald-600 hover:text-emerald-700 font-semibold text-sm flex items-center">
+                            Details <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            return `
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <h2 class="text-4xl font-bold text-center text-gray-800 mb-4">Upcoming Hiking Events 📅</h2>
+                    <p class="text-center text-xl text-gray-600 mb-10 max-w-3xl mx-auto">Browse the latest treks, day trips, and expeditions organized by Ethiopia's top groups.</p>
+
+                    ${featuredEvents.length > 0 ? `
+                        <h3 class="text-3xl font-bold text-red-600 mb-6 border-b-2 border-red-200 pb-2 flex items-center"><i data-lucide="zap" class="w-7 h-7 mr-2"></i> Featured Events</h3>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                            ${featuredEvents.map(renderEventCard).join('')}
+                        </div>
+                    ` : ''}
+
+                    <h3 class="text-3xl font-bold text-emerald-600 mb-6 border-b-2 border-emerald-200 pb-2 flex items-center"><i data-lucide="mountain" class="w-7 h-7 mr-2"></i> Open for Booking</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                        ${openEvents.length > 0 ? openEvents.map(renderEventCard).join('') : `<p class="text-lg text-gray-500 col-span-full">No events are currently open for booking. Check back soon!</p>`}
+                    </div>
+
+                    <h3 class="text-3xl font-bold text-gray-600 mb-6 border-b-2 border-gray-200 pb-2 flex items-center"><i data-lucide="clock" class="w-7 h-7 mr-2"></i> Past & Upcoming (Inactive)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        ${[...inactiveEvents, ...pastEvents].map(renderEventCard).join('')}
+                    </div>
+                </div>
+            `;
+        };
+
+        const contactPageContent = () => `
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <h2 class="text-4xl font-bold text-center text-gray-800 mb-4">Get in Touch 👋</h2>
+                <p class="text-center text-xl text-gray-600 mb-10 max-w-2xl mx-auto">Have a question about a trip, want to list your group, or just want to say hi? Send us a message!</p>
+
+                <div class="bg-white p-8 rounded-xl shadow-2xl">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-2xl font-bold text-emerald-600 mb-4">Contact Details</h3>
+                            <div class="space-y-4 text-gray-700">
+                                <p class="flex items-center"><i data-lucide="mail" class="w-5 h-5 mr-3 text-red-500"></i> <a href="mailto:hikingevents@gmail.com" class="hover:underline">hikingevents@gmail.com</a></p>
+                                <p class="flex items-center"><i data-lucide="phone" class="w-5 h-5 mr-3 text-red-500"></i> <a href="tel:+251910853427" class="hover:underline">+251 910 853 427</a></p>
+                                <p class="flex items-center"><i data-lucide="map-pin" class="w-5 h-5 mr-3 text-red-500"></i> Addis Ababa, Ethiopia</p>
+                            </div>
+                            <h3 class="text-2xl font-bold text-emerald-600 mt-8 mb-4">Follow Us</h3>
+                            <div class="flex space-x-4">
+                                <a href="https://instagram.com/hikingevents" target="_blank" class="text-gray-500 hover:text-red-500 transition" aria-label="Instagram"><i data-lucide="instagram" class="w-6 h-6"></i></a>
+                                <a href="https://www.facebook.com/hikingevents" target="_blank" class="text-gray-500 hover:text-red-500 transition" aria-label="Facebook"><i data-lucide="facebook" class="w-6 h-6"></i></a>
+                                <a href="https://t.me/hikingevent" target="_blank" class="text-gray-500 hover:text-red-500 transition" aria-label="Telegram"><i data-lucide="send" class="w-6 h-6"></i></a>
+                            </div>
+                        </div>
+
+                        <div id="contact-form-container">
+                            <h3 class="text-2xl font-bold text-emerald-600 mb-4">Send a Message</h3>
+                            <form onsubmit="event.preventDefault(); handleContactSubmit()" class="space-y-4">
+                                <div>
+                                    <label for="contact-name" class="block text-sm font-medium text-gray-700">Your Name</label>
+                                    <input type="text" id="contact-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                                </div>
+                                <div>
+                                    <label for="contact-email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                                    <input type="email" id="contact-email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border">
+                                </div>
+                                <div>
+                                    <label for="contact-message" class="block text-sm font-medium text-gray-700">Message</label>
+                                    <textarea id="contact-message" rows="4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 p-2 border"></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 transition">
+                                    Send Message
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // ----------------------------------------------
+        // --- NEW ADMIN PANEL FUNCTIONS & CONTENT ---
+        // ----------------------------------------------
+
+        /** Renders the Admin Panel content. */
+        const adminPageContent = () => `
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <h2 class="text-4xl font-bold text-red-600 mb-4 border-b pb-2">Admin Panel ⚙️</h2>
+                <p class="text-xl text-gray-600 mb-8">Manage hiking events. **Note: Changes are temporary and will not persist after a page reload (Frontend-only demo).**</p>
+
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Event Management</h3>
+                    <button onclick="openEventModal('new')" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg shadow-md hover:bg-emerald-700 transition flex items-center">
+                        <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Add New Event
+                    </button>
+                </div>
+
+                <div id="admin-event-list" class="space-y-4">
+                    </div>
+            </div>
+        `;
+
+        /** Renders the list of events in the admin view. */
+        const renderAdminEventList = () => {
+            const listContainer = document.getElementById('admin-event-list');
+            if (!listContainer) return;
+
+            // Sort by date (Featured on top, then by date descending)
+            const sortedEvents = eventsData.slice().sort((a, b) => {
+                if (a.isFeatured && !b.isFeatured) return -1;
+                if (!a.isFeatured && b.isFeatured) return 1;
+                // Simple string comparison for sorting other dates (not fully robust but works for this demo structure)
+                return b.date.localeCompare(a.date);
+            });
+
+
+            listContainer.innerHTML = sortedEvents.map(event => `
+                <div class="bg-white p-4 rounded-xl shadow-lg flex justify-between items-center border-l-4 ${event.isFeatured ? 'border-red-500' : 'border-emerald-500'}">
+                    <div>
+                        <p class="text-lg font-bold text-gray-900">${event.name}</p>
+                        <p class="text-sm text-gray-600">${event.date} | <span class="font-semibold">${event.group}</span></p>
+                        <p class="text-xs font-semibold text-red-500">${event.status} ${event.isFeatured ? '(FEATURED)' : ''}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="openEventModal('edit', ${event.id})" class="p-2 text-blue-600 hover:text-blue-800 bg-blue-100 rounded-full transition" title="Edit">
+                            <i data-lucide="square-pen" class="w-5 h-5"></i>
+                        </button>
+                        <button onclick="deleteEvent(${event.id})" class="p-2 text-red-600 hover:text-red-800 bg-red-100 rounded-full transition" title="Delete">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        };
+
+        /** Populates and opens the modal for adding or editing an event. */
+        const openEventModal = (mode, eventId = null) => {
+            const modal = document.getElementById('event-modal');
+            const title = document.getElementById('modal-title');
+            const form = document.getElementById('event-form');
+            
+            // Populate Group Dropdown
+            const groupSelect = document.getElementById('event-group');
+            groupSelect.innerHTML = groupsData.map(group => `<option value="${group.name}">${group.name}</option>`).join('');
+            groupSelect.prepend(new Option('Select a Group', '', true, true));
+
+            // Reset form
+            form.reset();
+            document.getElementById('event-id').value = '';
+
+            if (mode === 'edit' && eventId !== null) {
+                const event = eventsData.find(e => e.id === eventId);
+                if (event) {
+                    title.textContent = `Edit Event: ${event.name}`;
+                    document.getElementById('event-id').value = event.id;
+                    document.getElementById('event-name').value = event.name;
+                    document.getElementById('event-date').value = event.date;
+                    document.getElementById('event-group').value = event.group;
+                    document.getElementById('event-location').value = event.location;
+                    document.getElementById('event-difficulty').value = event.difficulty;
+                    document.getElementById('event-status').value = event.status;
+                    document.getElementById('event-sourceLink').value = event.sourceLink || '';
+                    document.getElementById('event-isFeatured').checked = event.isFeatured;
+                }
+            } else {
+                title.textContent = 'Add New Event';
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        /** Closes the modal. */
+        const closeModal = () => {
+            document.getElementById('event-modal').classList.add('hidden');
+        };
+
+        /** Saves a new or updated event to the eventsData array. */
+        const saveEvent = (event) => {
+            const eventId = document.getElementById('event-id').value;
+            const newEvent = {
+                id: eventId ? parseInt(eventId) : Date.now(), // Use Date.now() for a unique ID
+                date: document.getElementById('event-date').value,
+                name: document.getElementById('event-name').value,
+                group: document.getElementById('event-group').value,
+                difficulty: document.getElementById('event-difficulty').value,
+                status: document.getElementById('event-status').value,
+                sourceLink: document.getElementById('event-sourceLink').value,
+                location: document.getElementById('event-location').value,
+                isFeatured: document.getElementById('event-isFeatured').checked,
+            };
+
+            if (eventId) {
+                // EDIT mode
+                const index = eventsData.findIndex(e => e.id == eventId);
+                if (index !== -1) {
+                    eventsData[index] = newEvent;
+                    console.log('Event Updated:', newEvent);
+                }
+            } else {
+                // NEW mode
+                eventsData.unshift(newEvent); // Add to the start
+                console.log('New Event Added:', newEvent);
+            }
+
+            // After saving, re-render and close
+            renderAdminEventList();
+            closeModal();
+            // Re-render other pages to show the change immediately (optional but good for SPA)
+            if (currentPage === 'events') showPage('events');
+        };
+        
+        /** Deletes an event from the eventsData array. */
+        const deleteEvent = (eventId) => {
+            if (confirm(`Are you sure you want to delete event ID ${eventId}? This action cannot be undone.`)) {
+                eventsData = eventsData.filter(e => e.id !== eventId);
+                console.log('Event Deleted:', eventId);
+                
+                // After deleting, re-render
+                renderAdminEventList();
+                // Re-render other pages to show the change immediately (optional but good for SPA)
+                if (currentPage === 'events') showPage('events');
+            }
+        };
+
+        // ----------------------------------------------
+        // --- CORE APPLICATION LOGIC ---
+        // ----------------------------------------------
+
+        let currentPage = 'home';
+        const pageContentMap = {
+            'home': homePageContent,
+            'groups': groupsPageContent,
+            'guides': guidesPageContent,
+            'destinations': destinationsPageContent,
+            'events': eventsPageContent,
+            'contact': contactPageContent,
+            'admin': adminPageContent // New Admin Page
+        };
+
+        const showPage = (pageName) => {
+            currentPage = pageName;
+            const container = document.getElementById('page-container');
+            const pageFunction = pageContentMap[pageName];
+
+            if (pageFunction) {
+                container.innerHTML = pageFunction();
+                lucide.createIcons(); // Re-render Lucide icons for the new content
+
+                // Special logic for pages that require extra setup
+                if (pageName === 'destinations') {
+                    // Timeout ensures the map container div is fully rendered before Leaflet tries to attach to it
+                    setTimeout(loadDestinationMap, 10);
+                } else if (pageName === 'admin') {
+                    // Load the event list immediately when the admin page is shown
+                    renderAdminEventList();
+                }
+            } else {
+                container.innerHTML = `<div class="max-w-7xl mx-auto py-12 text-center"><h2 class="text-3xl font-bold text-red-600">404 - Page Not Found</h2><p class="mt-4">The page '${pageName}' does not exist.</p></div>`;
+            }
+        };
+
+        const toggleMobileMenu = () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // Event listener for mobile menu button
+        document.getElementById('mobile-menu-button').addEventListener('click', toggleMobileMenu);
+
+        // Initial page load
+        document.addEventListener('DOMContentLoaded', () => {
+            showPage('home'); // Load the home page content by default
+        });
+    </script>
+
+</body>
+</html>
